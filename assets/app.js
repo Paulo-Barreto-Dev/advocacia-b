@@ -9,13 +9,23 @@
   let lenis = null;
 
   /* Header e barra de progresso */
+  let lastY = window.scrollY;
   const updateScroll = () => {
     const y = window.scrollY;
-    if (header) header.classList.toggle('is-scrolled', y > 8);
+    if (header) {
+      header.classList.toggle('is-scrolled', y > 8);
+      if (compactQuery.matches && !document.body.classList.contains('menu-open')) {
+        const scrollingDown = y > lastY;
+        header.classList.toggle('is-hidden', scrollingDown && y > header.offsetHeight);
+      } else {
+        header.classList.remove('is-hidden');
+      }
+    }
     if (progress) {
       const total = root.scrollHeight - window.innerHeight;
       progress.style.setProperty('--scroll-progress', `${total > 0 ? (y / total) * 100 : 0}%`);
     }
+    lastY = y;
   };
   updateScroll();
   window.addEventListener('scroll', updateScroll, { passive: true });
