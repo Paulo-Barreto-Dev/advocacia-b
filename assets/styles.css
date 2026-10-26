@@ -411,8 +411,8 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { border-color
   .footer-grid > div:first-child { grid-column:1 / -1; }
   .footer-grid a:not(.brand) { min-height:44px; }
 
-  /* Header: esconde ao rolar para baixo, reaparece ao rolar para cima */
-  .site-header.is-hidden { transform:translateY(-100%); }
+  /* Header: oculta no hero, fixa e visível a partir daí */
+  .site-header.is-hidden { transform:translateY(-100%); visibility:hidden; }
 
   /* Barra de contato fixa: aparece após o hero */
   body.has-mobile-contact-bar { padding-bottom:calc(68px + env(safe-area-inset-bottom)); }

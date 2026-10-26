@@ -9,23 +9,13 @@
   let lenis = null;
 
   /* Header e barra de progresso */
-  let lastY = window.scrollY;
   const updateScroll = () => {
     const y = window.scrollY;
-    if (header) {
-      header.classList.toggle('is-scrolled', y > 8);
-      if (compactQuery.matches && !document.body.classList.contains('menu-open')) {
-        const scrollingDown = y > lastY;
-        header.classList.toggle('is-hidden', scrollingDown && y > header.offsetHeight);
-      } else {
-        header.classList.remove('is-hidden');
-      }
-    }
+    if (header) header.classList.toggle('is-scrolled', y > 8);
     if (progress) {
       const total = root.scrollHeight - window.innerHeight;
       progress.style.setProperty('--scroll-progress', `${total > 0 ? (y / total) * 100 : 0}%`);
     }
-    lastY = y;
   };
   updateScroll();
   window.addEventListener('scroll', updateScroll, { passive: true });
@@ -50,7 +40,7 @@
     toggle.setAttribute('aria-expanded', String(open));
     toggle.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
     if (lenis) open ? lenis.stop() : lenis.start();
-    if (open) menu.querySelector('a')?.focus();
+    if (open) menu.querySelector('a')?.focus({ preventScroll: true });
   };
   if (toggle && menu) {
     toggle.addEventListener('click', () => setMenu(!menu.classList.contains('is-open')));
@@ -134,18 +124,34 @@
 
   /* Barra de contato mobile: escondida enquanto o hero (com seus CTAs) está visível */
   const contactBar = document.querySelector('.mobile-contact-bar');
-  if (contactBar) {
-    const setBar = visible => {
-      contactBar.classList.toggle('is-hidden', !visible);
-      document.body.classList.toggle('has-mobile-contact-bar', visible);
-    };
-    const heroSection = document.querySelector('.hero');
-    if (heroSection && 'IntersectionObserver' in window) {
-      setBar(false);
-      new IntersectionObserver(([entry]) => setBar(!entry.isIntersecting), { threshold: 0.01 }).observe(heroSection);
-    } else {
-      setBar(true);
-    }
+  const heroSection = document.querySelector('.hero');
+  const setBar = visible => {
+    if (!contactBar) return;
+    contactBar.classList.toggle('is-hidden', !visible);
+    document.body.classList.toggle('has-mobile-contact-bar', visible);
+  };
+
+  /* Topbar: oculta enquanto o hero está visível (mobile), fixa e visível a partir daí */
+  const setHeaderVisible = visible => {
+    if (header) header.classList.toggle('is-hidden', !visible);
+  };
+  let pastHero = false;
+  const applyHeaderVisibility = () => {
+    setHeaderVisible(!compactQuery.matches || pastHero);
+  };
+
+  if (heroSection && 'IntersectionObserver' in window) {
+    setBar(false);
+    applyHeaderVisibility();
+    new IntersectionObserver(([entry]) => {
+      pastHero = !entry.isIntersecting;
+      setBar(pastHero);
+      applyHeaderVisibility();
+    }, { threshold: 0.01 }).observe(heroSection);
+    compactQuery.addEventListener?.('change', applyHeaderVisibility);
+  } else {
+    setBar(true);
+    setHeaderVisible(true);
   }
 
   /* Formulário: máscara de telefone e validação inline */
